@@ -91,6 +91,9 @@ Object with properties for the fields of the configuration descriptor:
   - bMaxPower
   - extra (Buffer containing any extra data or additional descriptors)
 
+### .parent
+Contains the parent of the device, e.g. an USB Hub. If there is no parent this property is set to null.
+
 ### .open()
 
 Open the device. All methods below require the device to be open before use.
