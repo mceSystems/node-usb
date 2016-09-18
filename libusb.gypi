@@ -117,6 +117,9 @@
             'libusb/msvc/inttypes.h',
             'libusb/msvc/stdint.h',
           ],
+          'defines': [
+            'HAVE_STRUCT_TIMESPEC',
+          ],
           'include_dirs!': [
             'libusb_config',
           ],
