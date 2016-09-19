@@ -59,6 +59,9 @@ static NAN_METHOD(deviceConstructor) {
 	info.This()->ForceSet(V8SYM("deviceAddress"),
 		Nan::New<Uint32>((uint32_t) libusb_get_device_address(self->device)), CONST_PROP);
 
+	info.This()->ForceSet(V8SYM("speed"),
+		Nan::New<Uint32>((uint32_t) libusb_get_device_speed(self->device)), CONST_PROP);
+
 	Local<Object> v8dd = Nan::New<Object>();
 	info.This()->ForceSet(V8SYM("deviceDescriptor"), v8dd, CONST_PROP);
 

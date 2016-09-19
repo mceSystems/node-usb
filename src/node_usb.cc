@@ -263,6 +263,13 @@ void initConstants(Local<Object> target){
 
 	NODE_DEFINE_CONSTANT(target, LIBUSB_CONTROL_SETUP_SIZE);
 
+	//libusb_supported_speed
+	NODE_DEFINE_CONSTANT(target, LIBUSB_SPEED_UNKNOWN);
+	NODE_DEFINE_CONSTANT(target, LIBUSB_SPEED_LOW);
+	NODE_DEFINE_CONSTANT(target, LIBUSB_SPEED_FULL);
+	NODE_DEFINE_CONSTANT(target, LIBUSB_SPEED_HIGH);
+	NODE_DEFINE_CONSTANT(target, LIBUSB_SPEED_SUPER);
+
 	// libusb_error
 	// Input/output error
 	NODE_DEFINE_CONSTANT(target, LIBUSB_ERROR_IO);
