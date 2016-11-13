@@ -1,7 +1,7 @@
 {
   "name": "usb",
   "description": "Library to access USB devices",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "engines": {
     "node": ">=0.12.x"
   },
@@ -45,9 +45,6 @@
     "nan": "^2.4.0",
     "node-pre-gyp": "^0.6.30"
   },
-  "bundledDependencies": [
-    "node-pre-gyp"
-  ],
   "devDependencies": {
     "coffee-script": "~1.6.2",
     "mocha": "~1.8.2",
