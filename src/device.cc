@@ -375,11 +375,7 @@ void Device::Init(Local<Object> target){
 
 	Nan::SetPrototypeMethod(tpl, "__getParent", Device_GetParent);
 	Nan::SetPrototypeMethod(tpl, "__getConfigDescriptor", Device_GetConfigDescriptor);
-<<<<<<< HEAD
-	Nan::SetPrototypeMethod(tpl, "__getParent", Device_GetParent);
-=======
 	Nan::SetPrototypeMethod(tpl, "__getAllConfigDescriptors", Device_GetAllConfigDescriptors);
->>>>>>> 07694a06a1d2cf8507153584c8f9300c3b1732c6
 	Nan::SetPrototypeMethod(tpl, "__open", Device_Open);
 	Nan::SetPrototypeMethod(tpl, "__close", Device_Close);
 	Nan::SetPrototypeMethod(tpl, "reset", Device_Reset::begin);
