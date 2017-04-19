@@ -58,7 +58,7 @@ Integer USB device number
 Integer USB device address
 
 ### .portNumbers
-Array containing the USB device port numbers
+Array containing the USB device port numbers, or `undefined` if not supported on this platform.
 
 ### .deviceDescriptor
 Object with properties for the fields of the device descriptor:
@@ -91,8 +91,11 @@ Object with properties for the fields of the configuration descriptor:
   - bMaxPower
   - extra (Buffer containing any extra data or additional descriptors)
 
+### .allConfigDescriptors
+	Contains all config descriptors of the device (same structure as .configDescriptor above)
+
 ### .parent
-Contains the parent of the device, e.g. an USB Hub. If there is no parent this property is set to null.
+	Contains the parent of the device, such as a hub. If there is no parent this property is set to `null`.
 
 ### .open()
 

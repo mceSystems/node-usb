@@ -13,42 +13,32 @@ static Nan::Persistent<v8::FunctionTemplate> device_constructor;
 
 Device::Device(libusb_device* d): device(d), device_handle(0) {
 	libusb_ref_device(device);
+	byPtr.insert(std::make_pair(d, this));
 	DEBUG_LOG("Created device %p", this);
 }
 
-
 Device::~Device(){
 	DEBUG_LOG("Freed device %p", this);
+	byPtr.erase(device);
 	libusb_close(device_handle);
 	libusb_unref_device(device);
 }
 
 // Map pinning each libusb_device to a particular V8 instance
-std::map<libusb_device*, Nan::Persistent<Object>> Device::byPtr;
-
-void DeviceWeakCallback(const Nan::WeakCallbackInfo<libusb_device> &data)  {
-	Device::unpin(data.GetParameter());
-}
+std::map<libusb_device*, Device*> Device::byPtr;
 
 // Get a V8 instance for a libusb_device: either the existing one from the map,
 // or create a new one and add it to the map.
 Local<Object> Device::get(libusb_device* dev){
 	auto it = byPtr.find(dev);
 	if (it != byPtr.end()){
-		return Nan::New(it->second);
+		return it->second->handle();
 	} else {
 		Local<FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(device_constructor);
 		Local<Value> argv[1] = { EXTERNAL_NEW(new Device(dev)) };
 		Local<Object> obj = constructorHandle->GetFunction()->NewInstance(1, argv);
-		auto it = byPtr.insert(std::make_pair(dev, std::move(obj))).first;
-		it->second.SetWeak(dev, DeviceWeakCallback, Nan::WeakCallbackType::kParameter);
 		return obj;
 	}
-}
-
-void Device::unpin(libusb_device* device) {
-	byPtr.erase(device);
-	DEBUG_LOG("Removed cached device %p", device);
 }
 
 static NAN_METHOD(deviceConstructor) {
@@ -58,7 +48,6 @@ static NAN_METHOD(deviceConstructor) {
 		Nan::New<Uint32>((uint32_t) libusb_get_bus_number(self->device)), CONST_PROP);
 	info.This()->ForceSet(V8SYM("deviceAddress"),
 		Nan::New<Uint32>((uint32_t) libusb_get_device_address(self->device)), CONST_PROP);
-
 	info.This()->ForceSet(V8SYM("speed"),
 		Nan::New<Uint32>((uint32_t) libusb_get_device_speed(self->device)), CONST_PROP);
 
@@ -85,23 +74,17 @@ static NAN_METHOD(deviceConstructor) {
 
 	uint8_t port_numbers[MAX_PORTS];
 	int ret = libusb_get_port_numbers(self->device, &port_numbers[0], MAX_PORTS);
-	CHECK_USB(ret);
-	Local<Array> array = Nan::New<Array>(ret);
-	for (int i = 0; i < ret; ++ i) {
-		array->Set(i, Nan::New(port_numbers[i]));
+	if (ret > 0) {
+		Local<Array> array = Nan::New<Array>(ret);
+		for (int i = 0; i < ret; ++ i) {
+			array->Set(i, Nan::New(port_numbers[i]));
+		}
+		info.This()->ForceSet(V8SYM("portNumbers"), array, CONST_PROP);
 	}
-
-	info.This()->ForceSet(V8SYM("portNumbers"), array, CONST_PROP);
-
 	info.GetReturnValue().Set(info.This());
 }
 
-NAN_METHOD(Device_GetConfigDescriptor) {
-	ENTER_METHOD(Device, 0);
-
-	libusb_config_descriptor* cdesc;
-	CHECK_USB(libusb_get_active_config_descriptor(self->device, &cdesc));
-
+Local<Object> Device::cdesc2V8(libusb_config_descriptor * cdesc){
 	Local<Object> v8cdesc = Nan::New<Object>();
 
 	STRUCT_TO_V8(v8cdesc, *cdesc, bLength)
@@ -171,21 +154,40 @@ NAN_METHOD(Device_GetConfigDescriptor) {
 			}
 		}
 	}
+	return v8cdesc;
+}
 
+NAN_METHOD(Device_GetConfigDescriptor) {
+	ENTER_METHOD(Device, 0);
+	libusb_config_descriptor* cdesc;
+	CHECK_USB(libusb_get_active_config_descriptor(self->device, &cdesc));
+	Local<Object> v8cdesc = Device::cdesc2V8(cdesc);
 	libusb_free_config_descriptor(cdesc);
 	info.GetReturnValue().Set(v8cdesc);
 }
 
-NAN_METHOD(Device_GetParent){
+NAN_METHOD(Device_GetAllConfigDescriptors){
 	ENTER_METHOD(Device, 0);
-	libusb_device * dev = libusb_get_parent(self->device);
-	if(dev){
-		info.GetReturnValue().Set(Device::get(dev));
-	}else{
-		info.GetReturnValue().Set(Null(info.GetIsolate()));
+	libusb_config_descriptor * cdesc;
+	struct libusb_device_descriptor dd;
+	libusb_get_device_descriptor(self->device, &dd);
+	Local<Array> v8cdescriptors = Nan::New<Array>(dd.bNumConfigurations);
+	for(uint8_t i = 0; i < dd.bNumConfigurations; i++){
+		libusb_get_config_descriptor(self->device, i, &cdesc);
+		v8cdescriptors->Set(i, Device::cdesc2V8(cdesc));
+		libusb_free_config_descriptor(cdesc);
 	}
+	info.GetReturnValue().Set(v8cdescriptors);
 }
 
+NAN_METHOD(Device_GetParent){
+	ENTER_METHOD(Device, 0);
+	libusb_device* dev = libusb_get_parent(self->device);
+	if(dev)
+		info.GetReturnValue().Set(Device::get(dev));
+	else
+		info.GetReturnValue().Set(Nan::Null());
+}
 
 NAN_METHOD(Device_Open) {
 	ENTER_METHOD(Device, 0);
@@ -371,8 +373,13 @@ void Device::Init(Local<Object> target){
 	tpl->SetClassName(Nan::New("Device").ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-	Nan::SetPrototypeMethod(tpl, "__getConfigDescriptor", Device_GetConfigDescriptor);
 	Nan::SetPrototypeMethod(tpl, "__getParent", Device_GetParent);
+	Nan::SetPrototypeMethod(tpl, "__getConfigDescriptor", Device_GetConfigDescriptor);
+<<<<<<< HEAD
+	Nan::SetPrototypeMethod(tpl, "__getParent", Device_GetParent);
+=======
+	Nan::SetPrototypeMethod(tpl, "__getAllConfigDescriptors", Device_GetAllConfigDescriptors);
+>>>>>>> 07694a06a1d2cf8507153584c8f9300c3b1732c6
 	Nan::SetPrototypeMethod(tpl, "__open", Device_Open);
 	Nan::SetPrototypeMethod(tpl, "__close", Device_Close);
 	Nan::SetPrototypeMethod(tpl, "reset", Device_Reset::begin);
