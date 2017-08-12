@@ -852,7 +852,7 @@ static int windows_assign_endpoints(struct libusb_device_handle *dev_handle, int
 	const struct libusb_interface_descriptor *if_desc;
 	struct libusb_context *ctx = DEVICE_CTX(dev_handle->dev);
 
-	r = libusb_get_config_descriptor(dev_handle->dev, 3, &conf_desc);
+	r = libusb_get_active_config_descriptor(dev_handle->dev, &conf_desc);
 	if (r != LIBUSB_SUCCESS) {
 		usbi_warn(ctx, "could not read config descriptor: error %d", r);
 		return r;
