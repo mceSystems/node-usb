@@ -1404,6 +1404,8 @@ int LIBUSB_CALL libusb_attach_kernel_driver(libusb_device_handle *dev,
 int LIBUSB_CALL libusb_set_auto_detach_kernel_driver(
 	libusb_device_handle *dev, int enable);
 
+const char * LIBUSB_CALL libusb_get_device_id(libusb_device *dev);
+
 /* async I/O */
 
 /** \ingroup asyncio

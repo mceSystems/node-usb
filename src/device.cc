@@ -157,6 +157,11 @@ Local<Object> Device::cdesc2V8(libusb_config_descriptor * cdesc){
 	return v8cdesc;
 }
 
+NAN_METHOD(Device_GetDeviceID) {
+	ENTER_METHOD(Device, 0);
+	info.GetReturnValue().Set(V8STR(libusb_get_device_id(self->device)));
+}
+
 NAN_METHOD(Device_GetConfigDescriptor) {
 	ENTER_METHOD(Device, 0);
 	libusb_config_descriptor* cdesc;
@@ -376,6 +381,7 @@ void Device::Init(Local<Object> target){
 	Nan::SetPrototypeMethod(tpl, "__getParent", Device_GetParent);
 	Nan::SetPrototypeMethod(tpl, "__getConfigDescriptor", Device_GetConfigDescriptor);
 	Nan::SetPrototypeMethod(tpl, "__getAllConfigDescriptors", Device_GetAllConfigDescriptors);
+	Nan::SetPrototypeMethod(tpl, "__getDeviceID", Device_GetDeviceID);
 	Nan::SetPrototypeMethod(tpl, "__open", Device_Open);
 	Nan::SetPrototypeMethod(tpl, "__close", Device_Close);
 	Nan::SetPrototypeMethod(tpl, "reset", Device_Reset::begin);

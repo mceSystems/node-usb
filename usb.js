@@ -56,6 +56,12 @@ Object.defineProperty(usb.Device.prototype, "allConfigDescriptors", {
 	}
 });
 
+Object.defineProperty(usb.Device.prototype, "deviceID", {
+	get: function() {
+		return this._deviceID || (this.deviceID = this.__getDeviceID())
+	}
+});
+
 Object.defineProperty(usb.Device.prototype, "parent", {
 	get: function() {
 		return this._parent || (this._parent = this.__getParent())

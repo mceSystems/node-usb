@@ -3515,6 +3515,12 @@ static int winusbx_exit(int sub_api)
 	return LIBUSB_SUCCESS;
 }
 
+const char * LIBUSB_CALL libusb_get_device_id(libusb_device *dev)
+{
+	struct windows_device_priv *priv = _device_priv(dev);
+	return priv->device_id;
+}
+
 // NB: open and close must ensure that they only handle interface of
 // the right API type, as these functions can be called wholesale from
 // composite_open(), with interfaces belonging to different APIs
