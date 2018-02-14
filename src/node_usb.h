@@ -38,9 +38,18 @@ struct Device: public Nan::ObjectWrap {
 
 	static Local<Object> cdesc2V8(libusb_config_descriptor * cdesc);
 
-	protected:
+	const char* getManufacturer() { return m_manufacturer.c_str(); }
+	const char* getProduct() { return m_product.c_str(); }
+	const char* getSerialNumber() { return m_serialNumber.c_str(); }
+
+	bool getStringDescriptors();
+protected:
+
 		static std::map<libusb_device*, Device*> byPtr;
 		Device(libusb_device* d);
+		std::string m_manufacturer;
+		std::string m_product;
+		std::string m_serialNumber;
 };
 
 

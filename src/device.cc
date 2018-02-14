@@ -11,7 +11,7 @@
 
 static Nan::Persistent<v8::FunctionTemplate> device_constructor;
 
-Device::Device(libusb_device* d): device(d), device_handle(0) {
+Device::Device(libusb_device* d): device(d), device_handle(0){
 	libusb_ref_device(device);
 	byPtr.insert(std::make_pair(d, this));
 	DEBUG_LOG("Created device %p", this);
@@ -160,6 +160,55 @@ Local<Object> Device::cdesc2V8(libusb_config_descriptor * cdesc){
 NAN_METHOD(Device_GetDeviceID) {
 	ENTER_METHOD(Device, 0);
 	info.GetReturnValue().Set(V8STR(libusb_get_device_id(self->device)));
+}
+
+#define GET_DEVICE_STR_DESC(i) (LIBUSB_SUCCESS <= libusb_get_string_descriptor_ascii(dh, i, (unsigned char*)buf, sizeof(buf)))?buf:""
+
+bool Device::getStringDescriptors()
+{
+	if (false == m_manufacturer.empty()) {
+		return true;
+	}
+
+	libusb_device_descriptor dd = { 0 };
+	if (LIBUSB_SUCCESS > libusb_get_device_descriptor(device, &dd)){
+		return false;
+	}
+
+	libusb_device_handle* dh = nullptr;
+
+	if (LIBUSB_SUCCESS > libusb_open(device, &dh)){
+		return false;
+	}
+
+	char buf[0x100] = { 0 };
+	
+	m_manufacturer	= GET_DEVICE_STR_DESC(dd.iManufacturer);
+	m_serialNumber	= GET_DEVICE_STR_DESC(dd.iSerialNumber);
+	m_product		= GET_DEVICE_STR_DESC(dd.iProduct);
+
+	libusb_close(dh);
+
+	return true;
+}
+
+
+NAN_METHOD(Device_GetManufacturer) {
+	ENTER_METHOD(Device, 0);
+	self->getStringDescriptors();
+	info.GetReturnValue().Set(V8STR(self->getManufacturer()));
+}
+
+NAN_METHOD(Device_GetProduct) {
+	ENTER_METHOD(Device, 0);
+	self->getStringDescriptors();
+	info.GetReturnValue().Set(V8STR(self->getProduct()));
+}
+
+NAN_METHOD(Device_GetSerialNumber) {
+	ENTER_METHOD(Device, 0);
+	self->getStringDescriptors();
+	info.GetReturnValue().Set(V8STR(self->getSerialNumber()));
 }
 
 NAN_METHOD(Device_GetConfigDescriptor) {
@@ -382,6 +431,9 @@ void Device::Init(Local<Object> target){
 	Nan::SetPrototypeMethod(tpl, "__getConfigDescriptor", Device_GetConfigDescriptor);
 	Nan::SetPrototypeMethod(tpl, "__getAllConfigDescriptors", Device_GetAllConfigDescriptors);
 	Nan::SetPrototypeMethod(tpl, "__getDeviceID", Device_GetDeviceID);
+	Nan::SetPrototypeMethod(tpl, "__getManufacturer", Device_GetManufacturer);
+	Nan::SetPrototypeMethod(tpl, "__getProduct", Device_GetProduct);
+	Nan::SetPrototypeMethod(tpl, "__getSerialNumber", Device_GetSerialNumber);
 	Nan::SetPrototypeMethod(tpl, "__open", Device_Open);
 	Nan::SetPrototypeMethod(tpl, "__close", Device_Close);
 	Nan::SetPrototypeMethod(tpl, "reset", Device_Reset::begin);

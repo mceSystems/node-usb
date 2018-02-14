@@ -62,6 +62,24 @@ Object.defineProperty(usb.Device.prototype, "deviceID", {
 	}
 });
 
+Object.defineProperty(usb.Device.prototype, "manufacturer", {
+	get: function() {
+		return this._deviceID || (this.deviceID = this.__getManufacturer())
+	}
+});
+
+Object.defineProperty(usb.Device.prototype, "product", {
+	get: function() {
+		return this._deviceID || (this.deviceID = this.__getProduct())
+	}
+});
+
+Object.defineProperty(usb.Device.prototype, "serialNumber", {
+	get: function() {
+		return this._deviceID || (this.deviceID = this.__getSerialNumber())
+	}
+});
+
 Object.defineProperty(usb.Device.prototype, "parent", {
 	get: function() {
 		return this._parent || (this._parent = this.__getParent())
