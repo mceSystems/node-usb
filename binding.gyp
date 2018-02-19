@@ -35,6 +35,21 @@
       ],
 
       'conditions' : [
+          ['use_system_libusb=="false" and OS=="win"', {
+            'defines': [
+              'HAVE_STRUCT_TIMESPEC',
+            ],
+            'include_dirs!': [
+              'libusb_config',
+            ],
+            'include_dirs': [
+              'libusb.mpd/libusb',
+              'libusb.mpd/libusb/os'
+            ],
+            'libraries': [
+              '../libusb.mpd/x64/Release/dll/libusb-1.0.lib'
+            ]
+          }],
           ['use_system_libusb=="false" and OS!="freebsd"', {
             'dependencies': [
               'libusb.gypi:libusb',
