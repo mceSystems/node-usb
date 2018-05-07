@@ -84,7 +84,14 @@ NAN_METHOD(Transfer_Submit) {
 		self->transfer->buffer
 	);
 
-	CHECK_USB(libusb_submit_transfer(self->transfer));
+	int r = libusb_submit_transfer(self->transfer);
+	if (LIBUSB_SUCCESS != r){
+		self->device->unref();
+		#ifndef USE_POLL
+		completionQueue.unref();
+		#endif
+	}
+	CHECK_USB(r);
 	info.GetReturnValue().Set(info.This());
 }
 

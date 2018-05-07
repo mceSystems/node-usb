@@ -3564,6 +3564,7 @@ static void winusbx_close(int sub_api, struct libusb_device_handle *dev_handle)
 	struct windows_device_handle_priv *handle_priv = _device_handle_priv(dev_handle);
 	struct windows_device_priv *priv = _device_priv(dev_handle->dev);
 	HANDLE file_handle;
+	HANDLE winusb_handle;
 	int i;
 
 	if (sub_api == SUB_API_NOTSET)
@@ -3576,6 +3577,11 @@ static void winusbx_close(int sub_api, struct libusb_device_handle *dev_handle)
 			file_handle = handle_priv->interface_handle[i].dev_handle;
 			if ( (file_handle != 0) && (file_handle != INVALID_HANDLE_VALUE)) {
 				CloseHandle(file_handle);
+			}
+			winusb_handle = handle_priv->interface_handle[i].api_handle;
+			if ((winusb_handle != 0) && (winusb_handle != INVALID_HANDLE_VALUE)) {
+				handle_priv->interface_handle[i].api_handle = NULL;
+				WinUSBX[sub_api].Free(winusb_handle);
 			}
 		}
 	}
